@@ -1,0 +1,34 @@
+- hosts: localhost
+  become: yes
+  tasks:
+  - name: Verificar si el archivo index.nginx-debian.html.bk existe
+    stat:
+      path: /var/www/html/index.nginx-debian.html.bk
+    register: register_name
+
+  - name: Imprimir error
+    debug:
+      msg: "The file or directory does not exists"
+    when: not register_name.stat.exists 
+
+  - name: Cambiar nombre de index.nginx-debian.html.bk
+    ansible.builtin.copy:
+      src: /var/www/html/index.nginx-debian.html.bk
+      dest: /var/www/html/index.nginx-debian.html 
+      remote_src: yes
+      owner: root
+      group: root
+      mode: u=rw,g=r,o=r
+    when: register_name.stat.exists
+
+  - name: Remover archivo antiguo de index.nginx-debian.html.bk
+    ansible.builtin.file:
+      path: /var/www/html/index.nginx-debian.html.bk
+      state: absent
+    when: register_name.stat.exists
+
+  - name: Desinstalar NGINX
+    apt:
+      name: nginx
+      state: absent
+      autoremove: yes

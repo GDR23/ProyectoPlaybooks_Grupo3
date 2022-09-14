@@ -1,0 +1,38 @@
+- hosts: localhost
+  become: yes
+  vars:
+    integrantes: ['Bilander','Gabriela','Julio', 'Leonel','Selvin']
+  tasks:
+  - name: Verificar si el archivo index.nginx-debian.html existe
+    stat:
+      path: /var/www/html/index.nginx-debian.html
+    register: register_name
+      
+  - name: Imprimir error
+    debug:
+      msg: "The file or directory does not exists"
+    when: not register_name.stat.exists 
+    
+  - name: Cambiar nombre de index.nginx-debian.html
+    ansible.builtin.copy:
+      src: /var/www/html/index.nginx-debian.html 
+      dest: /var/www/html/index.nginx-debian.html.bk
+      remote_src: yes
+      owner: root
+      group: root
+      mode: u=rw,g=r,o=r
+    when: register_name.stat.exists
+
+  - name: Remover archivo antiguo de index.nginx-debian.html
+    ansible.builtin.file:
+      path: /var/www/html/index.nginx-debian.html 
+      state: absent
+    when: register_name.stat.exists
+      
+  - name: Creacion de index.html mediante template
+    template:
+      src: /etc/ansible/Proyecto_PlayBooks/index.html.j2
+      dest: /var/www/html/index.html
+      owner: root
+      group: root
+      mode: "u=rw,g=r,o=r"

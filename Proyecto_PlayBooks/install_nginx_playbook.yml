@@ -1,0 +1,7 @@
+- hosts: localhost
+  become: yes
+  tasks:
+  - name: Instalacion Nginx
+    apt:
+      name: ['nginx']
+      state: latest
